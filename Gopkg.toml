@@ -1,0 +1,11 @@
+[[constraint]]
+  name = "github.com/aws/aws-lambda-go"
+  version = "1.13.3"
+
+[[constraint]]
+  name = "github.com/miekg/dns"
+  version = "1.1.27"
+
+[prune]
+  go-tests = true
+  unused-packages = true
