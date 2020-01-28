@@ -1,16 +1,12 @@
-install:
-	go get -u golang.org/x/lint/golint
-	go get -u github.com/golang/dep/cmd/dep
-	dep ensure
+exports:
+	export GOPROXY=https://gocenter.io
+	export GO111MODULE=on
 
 clean:
 	-@rm -f app function.zip
 
-lint:
-	golint
-
 build: clean lint
-	GOOS=linux go build -o app main.go
+	go build -o app main.go
 
 deploy: build
 	@zip function.zip app
