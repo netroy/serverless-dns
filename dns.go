@@ -1,27 +1,26 @@
 package main
 
 import (
-	"context"
 	"encoding/base64"
 	"math/rand"
 	"net"
-	"strconv"
 	"time"
 
-	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/miekg/dns"
 )
 
-// Handler struct implements #handle to be used as a lambda function
-type Handler struct {
+// TODO: add a global cache
+// https://docs.aws.amazon.com/lambda/latest/dg/go-programming-model-handler-types.html#go-programming-model-handler-execution-environment-reuse
+
+// DNSHandler struct implements #handle to be used as a lambda function
+type DNSHandler struct {
 	upstreams []string
 	client    *dns.Client
 }
 
-// NewHandler - Golint made me "document" this
-func NewHandler() *Handler {
-	handler := new(Handler)
+// NewDNSHandler - Golint made me "document" this
+func NewDNSHandler() *DNSHandler {
+	handler := new(DNSHandler)
 
 	resolv, _ := dns.ClientConfigFromFile("/etc/resolv.conf")
 	count := len(resolv.Servers)
@@ -49,11 +48,11 @@ func NewHandler() *Handler {
 	return handler
 }
 
-func (handler *Handler) randomUpstream() string {
+func (handler *DNSHandler) randomUpstream() string {
 	return handler.upstreams[rand.Intn(len(handler.upstreams))]
 }
 
-func (handler *Handler) query(query string) ([]byte, error) {
+func (handler *DNSHandler) query(query string) ([]byte, error) {
 	binary, err := base64.RawURLEncoding.DecodeString(query)
 	if err != nil {
 		return nil, err
@@ -72,31 +71,4 @@ func (handler *Handler) query(query string) ([]byte, error) {
 		return nil, err
 	}
 	return binary, nil
-}
-
-func (handler *Handler) handle(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	dns := req.QueryStringParameters["dns"]
-	body, err := handler.query(dns)
-	if err != nil {
-		return events.APIGatewayProxyResponse{
-			StatusCode: 500,
-			Body:       err.Error(),
-		}, nil
-	}
-
-	return events.APIGatewayProxyResponse{
-		StatusCode: 200,
-		Body:       base64.StdEncoding.EncodeToString(body),
-		Headers: map[string]string{
-			"Content-Type":   "application/dns-message",
-			"Content-Length": strconv.Itoa(len(body)),
-			// TODO: handle TTL as Expires
-		},
-		IsBase64Encoded: true,
-	}, nil
-}
-
-func main() {
-	handler := NewHandler()
-	lambda.Start(handler.handle)
 }

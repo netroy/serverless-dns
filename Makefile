@@ -6,7 +6,7 @@ clean:
 	-@rm -f app function.zip
 
 build: clean lint
-	go build -o app main.go
+	go build -o app
 
 deploy: build
 	@zip function.zip app
