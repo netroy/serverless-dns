@@ -7,20 +7,30 @@ import (
 	"time"
 
 	"github.com/miekg/dns"
+	"github.com/netroy/ttlcache"
 )
 
 // TODO: add a global cache
 // https://docs.aws.amazon.com/lambda/latest/dg/go-programming-model-handler-types.html#go-programming-model-handler-execution-environment-reuse
 
+// CacheEntry wraps DNS responses in a struct, so we can cache them
+type CacheEntry struct {
+	data []byte
+}
+
 // DNSHandler struct implements #handle to be used as a lambda function
 type DNSHandler struct {
 	upstreams []string
 	client    *dns.Client
+	cache     *ttlcache.Cache
 }
 
 // NewDNSHandler - Golint made me "document" this
 func NewDNSHandler() *DNSHandler {
 	handler := new(DNSHandler)
+
+	// TODO: don't hard code
+	handler.cache = ttlcache.NewCache(60 * time.Second)
 
 	resolv, _ := dns.ClientConfigFromFile("/etc/resolv.conf")
 	count := len(resolv.Servers)
@@ -48,11 +58,19 @@ func NewDNSHandler() *DNSHandler {
 	return handler
 }
 
+// TODO: allow chosing between random & round-robin
 func (handler *DNSHandler) randomUpstream() string {
 	return handler.upstreams[rand.Intn(len(handler.upstreams))]
 }
 
-func (handler *DNSHandler) query(query string) ([]byte, error) {
+// Query lets you resolve DNS queries.
+// This uses a TTL cache to reduce querying upstream
+func (handler *DNSHandler) Query(query string) ([]byte, error) {
+	entry, exists := handler.cache.Get(query)
+	if exists == true {
+		return entry.(CacheEntry).data, nil
+	}
+
 	binary, err := base64.RawURLEncoding.DecodeString(query)
 	if err != nil {
 		return nil, err
@@ -66,9 +84,11 @@ func (handler *DNSHandler) query(query string) ([]byte, error) {
 		return nil, err
 	}
 
-	binary, err = response.Pack()
+	data, err := response.Pack()
 	if err != nil {
 		return nil, err
 	}
+
+	handler.cache.Set(query, &CacheEntry{data})
 	return binary, nil
 }

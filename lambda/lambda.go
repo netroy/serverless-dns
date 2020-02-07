@@ -9,10 +9,11 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
+// LambdaHandler returns function that can be used by AWS Lambda runtime
 func LambdaHandler(dnsHandler *DNSHandler) func(context.Context, events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	return func(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 		dns := req.QueryStringParameters["dns"]
-		body, err := dnsHandler.query(dns)
+		body, err := dnsHandler.Query(dns)
 		if err != nil {
 			return events.APIGatewayProxyResponse{
 				StatusCode: 500,
