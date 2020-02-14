@@ -32,17 +32,24 @@ func NewDNSHandler() *DNSHandler {
 	// TODO: don't hard code
 	handler.cache = ttlcache.NewCache(60 * time.Second)
 
-	resolv, _ := dns.ClientConfigFromFile("/etc/resolv.conf")
-	count := len(resolv.Servers)
-	if count > 0 {
-		handler.upstreams = make([]string, count)
-		for index, server := range resolv.Servers {
-			handler.upstreams[index] = server + ":53"
-		}
-	} else {
-		// TODO: don't hardcode
-		handler.upstreams = []string{"1.1.1.1"}
+	// resolv, _ := dns.ClientConfigFromFile("/etc/resolv.conf")
+	// count := len(resolv.Servers)
+	// if count > 0 {
+	// 	handler.upstreams = make([]string, count)
+	// 	for index, server := range resolv.Servers {
+	// 		handler.upstreams[index] = server + ":53"
+	// 	}
+	// } else {
+	// TODO: don't hardcode
+	handler.upstreams = []string{
+		// Cloudflare
+		// "1.1.1.1:53"
+
+		// AdGuard
+		"176.103.130.130:53",
+		"176.103.130.131:53",
 	}
+	// }
 
 	// TODO: don't hardcode
 	timeout := time.Duration(15) * time.Second
@@ -68,7 +75,7 @@ func (handler *DNSHandler) randomUpstream() string {
 func (handler *DNSHandler) Query(query string) ([]byte, error) {
 	entry, exists := handler.cache.Get(query)
 	if exists == true {
-		return entry.(CacheEntry).data, nil
+		return entry.(*CacheEntry).data, nil
 	}
 
 	binary, err := base64.RawURLEncoding.DecodeString(query)
@@ -90,5 +97,5 @@ func (handler *DNSHandler) Query(query string) ([]byte, error) {
 	}
 
 	handler.cache.Set(query, &CacheEntry{data})
-	return binary, nil
+	return data, nil
 }

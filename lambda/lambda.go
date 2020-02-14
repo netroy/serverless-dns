@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
+	"log"
 	"strconv"
 
 	"github.com/aws/aws-lambda-go/events"
@@ -15,6 +17,8 @@ func LambdaHandler(dnsHandler *DNSHandler) func(context.Context, events.APIGatew
 		dns := req.QueryStringParameters["dns"]
 		body, err := dnsHandler.Query(dns)
 		if err != nil {
+			outputJSON, _ := json.Marshal(req)
+			log.Println(outputJSON)
 			return events.APIGatewayProxyResponse{
 				StatusCode: 500,
 				Body:       err.Error(),
@@ -36,5 +40,13 @@ func LambdaHandler(dnsHandler *DNSHandler) func(context.Context, events.APIGatew
 
 func main() {
 	dnsHandler := NewDNSHandler()
-	lambda.Start(LambdaHandler(dnsHandler))
+	lambdaHandler := LambdaHandler(dnsHandler)
+	lambda.Start(lambdaHandler)
+	// query := "JGUBAAABAAAAAAAAB2V4YW1wbGUDY29tAAABAAE"
+	// params := map[string]string{query: query}
+	// req := &events.APIGatewayProxyRequest{
+	// 	QueryStringParameters: params,
+	// }
+	// resp, err := lambdaHandler(nil, *req)
+	// log.Println(resp, err)
 }
