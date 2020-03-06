@@ -20,3 +20,11 @@ Currenty this repo isn't completely automated. Please follow these steps:
 
 - run `make setup build` in the lambda folder, to prepare an uploadable zip file for AWS Lambda
 - run `yarn && cdk deploy` in the root folder
+
+
+### Configure Firefox
+* `network.trr.bootstrapAddress` = `4.2.2.2`
+* `network.trr.mode` = `3`
+* `network.trr.uri` = `https://doh.netroy.in/dns-query`
+* `network.trr.useGET` = `true`
+* `network.security.esni.enabled` = `true`
