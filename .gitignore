@@ -3,6 +3,12 @@
 *.d.ts
 node_modules
 
+# yarn
+yarn-error.log
+.yarn/cache
+.yarn/*.gz
+.yarn/build-state.yml
+
 # CDK asset staging directory
 .cdk.staging
 cdk.out
