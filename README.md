@@ -14,4 +14,6 @@ This application uses serverless technologies from AWS to run an extremely low-c
 
 ## Deployment
 
-- run `yarn && yarn cdk deploy` in the root folder
+- run `yarn` to get all the node dependencies
+- run `yarn cdk deploy --parameters DomainName=[[DOMAIN_NAME]]` in the root folder to deploy
+- The deployment creates a ACM certificate, that needs to be validated by adding DNS records on your domain's hosted zone
