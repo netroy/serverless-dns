@@ -17,3 +17,10 @@ This application uses serverless technologies from AWS to run an extremely low-c
 - run `yarn` to get all the node dependencies
 - run `yarn cdk deploy --parameters DomainName=[[DOMAIN_NAME]]` in the root folder to deploy
 - The deployment creates a ACM certificate, that needs to be validated by adding DNS records on your domain's hosted zone
+
+### Configure Firefox
+* `network.trr.bootstrapAddress` = `4.2.2.2`
+* `network.trr.mode` = `3`
+* `network.trr.uri` = `https://[[DOMAIN_NAME]]/dns-query`
+* `network.trr.useGET` = `true`
+* `network.security.esni.enabled` = `true`
