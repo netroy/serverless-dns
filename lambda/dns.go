@@ -7,37 +7,34 @@ import (
 	"time"
 
 	"github.com/miekg/dns"
+	"github.com/netroy/ttlcache"
 )
 
-// TODO: add a global cache
-// https://docs.aws.amazon.com/lambda/latest/dg/go-programming-model-handler-types.html#go-programming-model-handler-execution-environment-reuse
+// CacheEntry wraps DNS responses in a struct, so we can cache them
+type CacheEntry struct {
+	data []byte
+}
 
-// DNSHandler struct implements #handle to be used as a lambda function
+type Config struct {
+	cache     *ttlcache.Cache
+	timeout   int
+	upstreams []string
+}
+
 type DNSHandler struct {
 	upstreams []string
 	client    *dns.Client
+	cache     *ttlcache.Cache
 }
 
 // NewDNSHandler - Golint made me "document" this
-func NewDNSHandler() *DNSHandler {
+func NewDNSHandler(config *Config) *DNSHandler {
 	handler := new(DNSHandler)
-
-	resolv, _ := dns.ClientConfigFromFile("/etc/resolv.conf")
-	count := len(resolv.Servers)
-	if count > 0 {
-		handler.upstreams = make([]string, count)
-		for index, server := range resolv.Servers {
-			handler.upstreams[index] = server + ":53"
-		}
-	} else {
-		// TODO: don't hardcode
-		handler.upstreams = []string{"1.1.1.1"}
-	}
-
-	// TODO: don't hardcode
-	timeout := time.Duration(15) * time.Second
+	handler.cache = config.cache
+	handler.upstreams = config.upstreams
+	timeout := time.Duration(config.timeout) * time.Second
 	handler.client = &dns.Client{
-		Net:     "tcp",
+		Net:     "udp",
 		Timeout: timeout,
 	}
 	handler.client.Dialer = &net.Dialer{
@@ -48,11 +45,21 @@ func NewDNSHandler() *DNSHandler {
 	return handler
 }
 
+// TODO: allow chosing between random & round-robin
 func (handler *DNSHandler) randomUpstream() string {
 	return handler.upstreams[rand.Intn(len(handler.upstreams))]
 }
 
-func (handler *DNSHandler) query(query string) ([]byte, error) {
+// Query lets you resolve DNS queries.
+// This uses a TTL cache to reduce querying upstream
+func (handler *DNSHandler) Query(query string) ([]byte, error) {
+	if handler.cache != nil {
+		entry, exists := handler.cache.Get(query)
+		if exists == true {
+			return entry.(*CacheEntry).data, nil
+		}
+	}
+
 	binary, err := base64.RawURLEncoding.DecodeString(query)
 	if err != nil {
 		return nil, err
@@ -66,9 +73,12 @@ func (handler *DNSHandler) query(query string) ([]byte, error) {
 		return nil, err
 	}
 
-	binary, err = response.Pack()
+	data, err := response.Pack()
 	if err != nil {
 		return nil, err
 	}
-	return binary, nil
+	if handler.cache != nil {
+		handler.cache.Set(query, &CacheEntry{data})
+	}
+	return data, nil
 }
