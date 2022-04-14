@@ -48,6 +48,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@aws-cdk/aws-lambda-go-alpha@npm:2.20.0-alpha.0":
+  version: 2.20.0-alpha.0
+  resolution: "@aws-cdk/aws-lambda-go-alpha@npm:2.20.0-alpha.0"
+  peerDependencies:
+    aws-cdk-lib: ^2.20.0
+    constructs: ^10.0.0
+  checksum: d52ae29b53c3ef75cbcd0212334885fcb835fda864a352aaca555bd9b4c6a7b08b8de2914d31ac10f520edc8e1b6b1fbe5dc9ecd51668b5676d2c31a6b971efa
+  languageName: node
+  linkType: hard
+
 "@aws-cdk/cfnspec@npm:2.20.0":
   version: 2.20.0
   resolution: "@aws-cdk/cfnspec@npm:2.20.0"
@@ -1711,6 +1721,7 @@ __metadata:
     "@aws-cdk/assert": 2.20.0
     "@aws-cdk/aws-apigatewayv2-alpha": 2.20.0-alpha.0
     "@aws-cdk/aws-apigatewayv2-integrations-alpha": 2.20.0-alpha.0
+    "@aws-cdk/aws-lambda-go-alpha": 2.20.0-alpha.0
     "@types/jest": 27.4.1
     "@types/node": 17.0.24
     aws-cdk: 2.20.0
