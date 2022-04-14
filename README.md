@@ -11,12 +11,12 @@ Currenty this repo isn't completely automated. Please follow these steps:
 
 ### Requirements
 
-- gvm with go 1.11+
-- nodejs 10+
+- gvm with go 1.18+
+- nodejs 14+
 - yarn
 - aws cli installed & configured with correct credentials
 
 ### Setup
 
 - run `make setup build` in the lambda folder, to prepare an uploadable zip file for AWS Lambda
-- run `yarn && cdk deploy` in the root folder
+- run `yarn && yarn cdk deploy` in the root folder
